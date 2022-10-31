@@ -36,13 +36,14 @@ $this->params['breadcrumbs'][] = $this->title;
                 }
             ],
             'name',
+            'price:currency',/*
             [
                 'attribute' => 'price',
                 'format' => [
                     'currency',
                     '$',
                 ]
-            ],
+            ],*/
             [
                     'attribute' => 'status',
                     'content' => function($model){
