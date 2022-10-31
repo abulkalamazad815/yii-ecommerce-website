@@ -3,6 +3,9 @@
 namespace common\models;
 
 use Yii;
+use yii\behaviors\BlameableBehavior;
+use yii\behaviors\TimestampBehavior;
+use yii\db\Transaction;
 use yii\helpers\FileHelper;
 use yii\web\UploadedFile;
 
@@ -38,6 +41,15 @@ class Product extends \yii\db\ActiveRecord
     public static function tableName()
     {
         return '{{%products}}';
+    }
+
+
+    public function behaviors()
+    {
+        return [
+            TimestampBehavior::class,
+            BlameableBehavior::class
+        ];
     }
 
     /**
@@ -129,23 +141,33 @@ class Product extends \yii\db\ActiveRecord
 
     public function save($runValidation = true, $attributeNames = null)
     {
-
         if ($this->imageFile) {
-            $this->image = '/products/' . Yii::$app->security->generateRandomString(2) . '/' . $this->imageFile->name;
+            $this->image = '/products/' . Yii::$app->security->generateRandomString(5) . '/' . $this->imageFile->name;
         }
 
+        $transaction = Yii::$app->db->beginTransaction();
         $ok = parent::save($runValidation, $attributeNames);
 
-        if ($ok) {
+        if ($ok && $this->imageFile) {
             $fullPath = Yii::getAlias('@frontend/web/storage' . $this->image);
             /*echo '<pre>',var_dump($fullPath),'</pre>';
             exit;*/
             $dir = dirname($fullPath);
-            FileHelper::createDirectory($dir);
-            $this->imageFile->saveAs($fullPath);
+
+            if(!FileHelper::createDirectory($dir) |  !$this->imageFile->saveAs($fullPath)){
+                $transaction->rollBack();
+                return false;
+            }
         }
-
-
+        $transaction->commit();
         return $ok;
+    }
+
+    public function getImageUrl(){
+        if($this->image){
+            return Yii::$app->params['frontendUrl'].'/storage'.$this->image;
+        }
+        return Yii::$app->params['frontendUrl'].'/img/no_image.PNG';
+
     }
 }
