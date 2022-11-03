@@ -9,7 +9,8 @@ use yii\bootstrap5\Breadcrumbs;
 use yii\bootstrap5\Html;
 use yii\bootstrap5\Nav;
 use yii\bootstrap5\NavBar;
-
+$this->title = 'Yii E-commerce';
+$cartItemCount = $this->params['cartItemCount'];
 AppAsset::register($this);
 ?>
 <?php $this->beginPage() ?>
@@ -35,16 +36,49 @@ AppAsset::register($this);
         ],
     ]);
     $menuItems = [
-        ['label' => 'Home', 'url' => ['/site/index']],
-        ['label' => 'About', 'url' => ['/site/about']],
-        ['label' => 'Contact', 'url' => ['/site/contact']],
+        [
+            'label' => 'Cart <span id="cart-quantity" class="badge bg-danger">'.$cartItemCount.'</span>',
+            'url' => ['/cart/index'],
+            'encode' => false
+        ],
     ];
 
+    if (Yii::$app->user->isGuest) {
+        $menuItems = [
+            ['label' => 'Home', 'url' => ['/site/index']],
+            ['label' => 'About', 'url' => ['/site/about']],
+            ['label' => 'Contact', 'url' => ['/site/contact']],
+            ['label' => 'Cart', 'url' => ['/cart/index']],
+            ['label' => 'Signup', 'url' => ['/site/signup']],
+            ['label' => 'Login', 'url' => ['/site/login']],
+        ];
+    }else{
+        $menuItems[] = [
+          'label' => Yii::$app->user->identity->getDisplayname(),
+            /*'dropDownOptions' =>[
+                    'class' => 'navbar-nav'
+            ],*/
+
+          'items' => [
+                  [
+                      'label' => 'Profile',
+                      'url' => ['/profile/index']
+                  ],
+                  [
+                      'label' => 'Logout',
+                      'url' => ['/site/logout'],
+                      'linkOptions' => [
+                              'data-method' => 'post'
+                      ],
+                  ],
+          ]
+        ];
+    }
     echo Nav::widget([
         'options' => ['class' => 'navbar-nav me-auto mb-2 mb-md-0'],
         'items' => $menuItems,
     ]);
-    if (Yii::$app->user->isGuest) {
+    /*if (Yii::$app->user->isGuest) {
         echo Html::tag('div',Html::a('Signup',['/site/signup'],['class' => ['btn btn-link login text-decoration-none']]),['class' => ['d-flex']]);
         echo Html::tag('div',Html::a('Login',['/site/login'],['class' => ['btn btn-link login text-decoration-none']]),['class' => ['d-flex']]);
     } else {
@@ -54,7 +88,7 @@ AppAsset::register($this);
                 ['class' => 'btn btn-link logout text-decoration-none']
             )
             . Html::endForm();
-    }
+    }*/
     NavBar::end();
     ?>
 </header>
@@ -75,7 +109,11 @@ AppAsset::register($this);
         <p class="float-end"><?= Yii::powered() ?></p>
     </div>
 </footer>
-
+<style>
+    .navbar-collapse{
+        flex-grow:0
+    }
+</style>
 <?php $this->endBody() ?>
 </body>
 </html>
