@@ -48,7 +48,11 @@ AppAsset::register($this);
             ['label' => 'Home', 'url' => ['/site/index']],
             ['label' => 'About', 'url' => ['/site/about']],
             ['label' => 'Contact', 'url' => ['/site/contact']],
-            ['label' => 'Cart', 'url' => ['/cart/index']],
+            [
+                'label' => 'Cart <span id="cart-quantity" class="badge bg-danger">'.$cartItemCount.'</span>',
+                'url' => ['/cart/index'],
+                'encode' => false
+            ],
             ['label' => 'Signup', 'url' => ['/site/signup']],
             ['label' => 'Login', 'url' => ['/site/login']],
         ];

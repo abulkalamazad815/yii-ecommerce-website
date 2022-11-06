@@ -16,6 +16,7 @@ $this->title = 'Cart';
         <h2>Your cart items</h2>
     </div>
     <div class="card-body p-0">
+        <?php if(!empty($items)): ?>
         <table class="table table-striped table-hover">
             <thead>
             <tr>
@@ -52,5 +53,10 @@ $this->title = 'Cart';
         <div class="card-body text-end">
             <a href="<?php echo \yii\helpers\Url::to(['cart/checkout'])?>" class="btn btn-primary">Checkout</a>
         </div>
+        <?php else: ?>
+            <p class="text-muted text-center p-5">
+                There are no items in the cart
+            </p>
+        <?php endif; ?>
     </div>
 </div>

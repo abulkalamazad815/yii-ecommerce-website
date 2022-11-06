@@ -14,6 +14,7 @@ use common\models\Product;
 use common\widgets\Alert;
 use Yii;
 use yii\filters\ContentNegotiator;
+use yii\filters\VerbFilter;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
@@ -23,19 +24,26 @@ class CartController extends \frontend\base\Controller
     public function behaviors()
     {
         return [
-          [
-              'class' => ContentNegotiator::class,
-              'only'=> ['add'],
-              'formats' => [
-                  'application/json' => Response::FORMAT_JSONP
-              ]
-          ]
+              [
+                  'class' => ContentNegotiator::class,
+                  'only'=> ['add'],
+                  'formats' => [
+                      'application/json' => Response::FORMAT_JSONP
+                  ]
+              ],
+            'verbs' => [
+                'class' => VerbFilter::class,
+                'actions' => [
+                    'delete' => ['POST'],
+                ],
+            ],
         ];
     }
 
     public function actionIndex(){
         if(\Yii::$app->user->isGuest){
             //Get cart items from session
+            $cartItems = Yii::$app->session->get(CartItem::SESSION_KEY, []);
         }else{
            $cartItems = CartItem::findBySql("
                             SELECT
@@ -66,7 +74,29 @@ class CartController extends \frontend\base\Controller
        }
 
        if(\Yii::$app->user->isGuest){
-           //TODO Save to session
+           //Get cart items from session
+            $cartItems = \Yii::$app->session->get(CartItem::SESSION_KEY, []);
+            $found = false;
+            foreach ($cartItems as &$cartItem){
+                if($cartItem['id'] == $id){
+                    $cartItem['quantity']++;
+                    $found = true;
+                    break;
+                }
+            }
+            if(!$found){
+                $cartItem = [
+                    'id' => $id,
+                    'name' => $product->name,
+                    'image' => $product->image,
+                    'price' => $product->price,
+                    'quantity' => 1,
+                    'totalPrice' => $product->price
+                ];
+                $cartItems[] = $cartItem;
+            }
+
+            \Yii::$app->session->set(CartItem::SESSION_KEY, $cartItems);
        }else{
            $userId = \Yii::$app->user->id;
            $cartItem = CartItem::find()->userId($userId)->productId($id)->one();
