@@ -8,6 +8,7 @@
  */
 /** @var array $items */
 
+use common\models\Product;
 use yii\helpers\Url;
 
 $this->title = 'Cart';
@@ -35,14 +36,14 @@ $this->title = 'Cart';
                 <tr data-id="<?php echo $item['id'] ?>" data-url="<?php echo Url::to(['/cart/change-quantity'])?>">
                     <td><?php echo $item['name']?></td>
                     <td>
-                        <img src="<?php echo \common\models\Product::formatImageUrl($item['image']) ?>"
+                        <img src="<?php echo Product::formatImageUrl($item['image']) ?>"
                              alt="<?php echo $item['image']?>" width="50px">
                     </td>
-                    <td><?php echo $item['price']?></td>
+                    <td class="product-price"><?php echo $item['price']?></td>
                     <td>
                         <input type="number" min="1" class="form-control item-quantity" style="width: 80px" value="<?php echo $item['quantity']?>">
                     </td>
-                    <td><?php echo $item['totalPrice']?></td>
+                    <td class="total-price"><?php echo $item['totalPrice']?></td>
                     <td>
                         <?php echo \yii\helpers\Html::a('Delete', ['cart/delete', 'id'=>$item['id']],[
                             'class'=>'btn btn-outline-danger btn-sm',
@@ -55,7 +56,7 @@ $this->title = 'Cart';
             </tbody>
         </table>
         <div class="card-body text-end">
-            <a href="<?php echo \yii\helpers\Url::to(['cart/checkout'])?>" class="btn btn-primary">Checkout</a>
+            <a href="<?php echo Url::to(['cart/checkout'])?>" class="btn btn-primary">Checkout</a>
         </div>
         <?php else: ?>
             <p class="text-muted text-center p-5">

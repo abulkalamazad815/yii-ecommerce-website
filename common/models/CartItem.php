@@ -47,6 +47,46 @@ class CartItem extends \yii\db\ActiveRecord
         return $sum;
     }
 
+
+    public static function getItemsForUser(?int $currUserId)
+    {
+       return CartItem::findBySql(
+           "SELECT
+                    a.product_id as id
+                    ,p.image
+                    ,p.name
+                    ,p.price
+                    ,a.quantity
+                    ,p.price * a.quantity as totalPrice
+                FROM cart_items a
+                LEFT JOIN products p on p.id = a.product_id 
+                WHERE a.created_by = :userId",
+            ['userId' => $currUserId])
+            ->asArray()
+            ->all();
+    }
+
+    public static function getTotalPriceForUser(?int $currUserId)
+    {
+        if(isGuest()){
+            $cartItems = \Yii::$app->session->get(CartItem::SESSION_KEY, []);
+            $sum = 0;
+            foreach ($cartItems as $cartItem){
+                $sum += $cartItem['quantity'] * $cartItem['price'];
+            }
+        }else{
+            $sum = CartItem::findBySql("
+                            SELECT 
+                                SUM(p.price * a.quantity)
+                            FROM cart_items a
+                            LEFT JOIN products p on p.id = a.product_id 
+                            WHERE a.created_by = :userId",
+                ['userId' => $currUserId]
+            )->scalar();
+        }
+        return $sum;
+    }
+
     /**
      * {@inheritdoc}
      */
