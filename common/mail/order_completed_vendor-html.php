@@ -9,6 +9,14 @@
 /** @var \common\models\Order $order */
 $orderAddress = $order->orderAddress;
 ?>
+<style>
+    .row {
+        display: flex;
+    }
+    .col {
+        flex: 1;
+    }
+</style>
 <h4>Order #<?php echo $order->id?> Summery:</h4>
 <hr>
 <div class="row">
