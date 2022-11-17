@@ -7,7 +7,7 @@
  * To change this template use File || Settings || File and Code Templates
  */
 /** @var \common\models\Order $order */
-/** @var \common\models\OrderAddresse $orderAddress */
+/** @var \common\models\OrderAddress $orderAddress */
 /** @var array $cartItems */
 /** @var int $productQuantity */
 /** @var float $totalPrice */
@@ -18,7 +18,8 @@ use yii\bootstrap5\ActiveForm;
 ?>
 
 <?php $form = ActiveForm::begin([
-    'action' => [''],
+    'id' => 'checkout-form',
+    'action' => ['/cart/checkout']
 ]); ?>
 <div class="row">
     <div class="col">
@@ -77,5 +78,5 @@ use yii\bootstrap5\ActiveForm;
         </div>
     </div>
 </div>
-
 <?php ActiveForm::end(); ?>
+

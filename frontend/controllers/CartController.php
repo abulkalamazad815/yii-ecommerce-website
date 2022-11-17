@@ -11,13 +11,21 @@ namespace frontend\controllers;
 
 use common\models\CartItem;
 use common\models\Order;
-use common\models\OrderAddresse;
+use common\models\OrderAddress;
 use common\models\Product;
 use common\models\User;
 use common\widgets\Alert;
+use http\Client;
+use PayPalCheckoutSdk\Core\PayPalHttpClient;
+use PayPalCheckoutSdk\Core\SandboxEnvironment;
+use PayPalCheckoutSdk\Orders\OrdersGetRequest;
+use PayPalCheckoutSdk\Payments\AuthorizationsGetRequest;
+use Sample\PayPalClient;
 use Yii;
 use yii\filters\ContentNegotiator;
 use yii\filters\VerbFilter;
+use yii\helpers\VarDumper;
+use yii\web\BadRequestHttpException;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
@@ -29,27 +37,24 @@ class CartController extends \frontend\base\Controller
         return [
               [
                   'class' => ContentNegotiator::class,
-                  'only'=> ['add'],
+                  'only'=> ['add','create-order','submit-payment'],
                   'formats' => [
-                      'application/json' => Response::FORMAT_JSONP
+                      'application/json' => Response::FORMAT_JSON
                   ]
               ],
             'verbs' => [
                 'class' => VerbFilter::class,
                 'actions' => [
                     'delete' => ['POST', 'DELETE'],
+                    'create-order' => ['POST'],
                 ],
             ],
         ];
     }
 
     public function actionIndex(){
-        if(\Yii::$app->user->isGuest){
-            //Get cart items from session
-            $cartItems = Yii::$app->session->get(CartItem::SESSION_KEY, []);
-        }else{
-           $cartItems = CartItem::getItemsForUser(currUserId());
-        }
+
+        $cartItems = CartItem::getItemsForUser(currUserId());
 
         return $this->render('index',[
                 'items' => $cartItems
@@ -99,7 +104,6 @@ class CartController extends \frontend\base\Controller
                $cartItem->created_by = $userId;
            }
            if($cartItem->save()){
-
                return [
                    'success' => true
                ];
@@ -160,10 +164,38 @@ class CartController extends \frontend\base\Controller
     }
 
     public function actionCheckout(){
-        $order = new Order();
-        $orderAddress = new OrderAddresse();
+        $cartItems = CartItem::getItemsForUser(currUserId());
+        $productQuantity = CartItem::getTotalQuantityForUser(currUserId());
+        $totalPrice = CartItem::getTotalPriceForUser(currUserId());
 
-        if(!isGuest()){
+        if(empty($cartItems)){
+            return $this->redirect(Yii::$app->homeUrl);
+        }
+
+        $order = new Order();
+        $order->total_price = $totalPrice;
+        $order->status = Order::STATUS_DRAFT;
+        $order->created_at = time();
+        $order->created_by = currUserId();
+
+        $transaction = Yii::$app->db->beginTransaction();
+
+        if($order->load(Yii::$app->request->post())
+            && $order->save()
+            && $order->saveAddress(Yii::$app->request->post())
+            && $order->saveOrderItems()){
+
+            $transaction->commit();
+
+            CartItem::clearCartItems(currUserId());
+
+            return $this->render('pay-now',[
+                'order' => $order
+            ]);
+        }
+        $orderAddress = new OrderAddress();
+
+        if(!isGuest()) {
             /** @var User $user */
             $user = Yii::$app->user->identity;
             $userAddress = $user->getAddress();
@@ -178,20 +210,75 @@ class CartController extends \frontend\base\Controller
             $orderAddress->state = $userAddress->state;
             $orderAddress->country = $userAddress->country;
             $orderAddress->zipcode = $userAddress->zipcode;
-            $cartItems = CartItem::getItemsForUser(currUserId());
-        }else{
-            $cartItems = \Yii::$app->session->get(CartItem::SESSION_KEY, []);
         }
 
-        $productQuantity = CartItem::getTotalQuantityForUser(currUserId());
-        $totalPrice = CartItem::getTotalPriceForUser(currUserId());
-
         return $this->render('checkout', [
-           'order' => $order,
-           'orderAddress' => $orderAddress,
+            'order' => $order,
+            'orderAddress' => $orderAddress,
             'cartItems' => $cartItems,
             'productQuantity' => $productQuantity,
             'totalPrice' =>$totalPrice
         ]);
     }
+
+
+    public function actionSubmitPayment($orderId){
+
+        $where = ['id' => $orderId, 'status' => Order::STATUS_DRAFT];
+        if(!isGuest()){
+            $where['created_by'] = currUserId();
+        }
+        $order = Order::findOne($where);
+        if(!$order){
+            throw new NotFoundHttpException();
+        }
+
+        $req = Yii::$app->request;
+        $paypalOrderId = $req->post('orderId');
+        $exists = Order::find()->andWhere(['paypal_orderId' => $paypalOrderId])->exists();
+        if($exists){
+            throw new BadRequestHttpException();
+        }
+
+        $environment = new SandboxEnvironment(Yii::$app->params['paypalClientId'], Yii::$app->params['paypalSecret']);
+        $client = new PayPalHttpClient($environment);
+
+        $response = $client->execute(new OrdersGetRequest($paypalOrderId));
+
+        if($response->statusCode === 200){
+            $order->paypal_orderId = $paypalOrderId;
+            $paidAmount = 0;
+            foreach ($response->result->purchase_units as $purchase_unit){
+                if($purchase_unit->amount->currency_code === 'USD'){
+                    $paidAmount += $purchase_unit->amount->value;
+                }
+            }
+            if($paidAmount === $order->total_price && $response->result->status === 'COMPLETED'){
+                $order->status = Order::STATUS_COMPLETED;
+            }
+            $order->transaction_id = $response->result->purchase_units[0]->payments->captures[0]->id;
+            if($order->save()){
+                if(!$order->sendEmailToVendor()){
+                    Yii::error("Email to the vendor is not sent");
+                }
+                if(!$order->sendEmailToCustomer()){
+                    Yii::error("Email to the customer is not sent");
+                }
+
+                return [
+                    'success' => true
+                ];
+            }else{
+                Yii::error("Order was not saved. Data: ".VarDumper::dumpAsString($order->toArray()).
+                    '.Errors: '.VarDumper::dumpAsString($order->errors));
+            }
+        }
+
+        throw new BadRequestHttpException();
+        /*echo '<pre>';
+        var_dump($response);
+        echo '</pre>';*/
+
+    }
+
 }
