@@ -150,7 +150,7 @@ $orderAddress = $order->orderAddress
                     success: function (res){
                         // This function shows a transaction success message to your buyer.
                         alert('Thanks' + ' ' + details.payer.name.given_name + ' ' + 'for shopping with us.');
-                        window.location.reload();
+                        window.location.href = '';
                     }
                 })
             });
