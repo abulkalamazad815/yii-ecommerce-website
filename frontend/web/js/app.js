@@ -22,16 +22,15 @@ $(function (){
     $itemQuantites.change(ev =>{
         const $this = $(ev.target);
         let $tr = $this.closest('tr');
+        const $td = $this.closest('td');
         const id = $tr.data('id');
-        let productPrice = parseFloat($tr.find('.product-price').text());
-        let totalPrice = (productPrice * $this.val()).toFixed(2);
         $.ajax({
             method: 'POST',
             url: $tr.data('url'),
             data: {id, quantity:$this.val()},
-            success: function (totalQuantity){
-                $cartQuantity.text(totalQuantity);
-                $tr.find('.total-price').text(totalPrice);
+            success: function (result){
+                $cartQuantity.text(result.quantity);
+                $td.next().text(result.itemTotalprice);
             }
         })
     })

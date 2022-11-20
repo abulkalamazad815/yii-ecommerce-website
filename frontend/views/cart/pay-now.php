@@ -22,17 +22,17 @@ $orderAddress = $order->orderAddress
             <tbody>
                 <tr>
                     <th>Firstname</th>
-                    <td><?php echo $order->firstname?></td>
+                    <td style="text-align: center;"><?php echo $order->firstname?></td>
                 </tr>
 
                 <tr>
                     <th>Lastname</th>
-                    <td><?php echo $order->lastname?></td>
+                    <td style="text-align: center;"><?php echo $order->lastname?></td>
                 </tr>
 
                 <tr>
                     <th>Email</th>
-                    <td><?php echo $order->email?></td>
+                    <td style="text-align: center;"><?php echo $order->email?></td>
                 </tr>
             </tbody>
         </table>
@@ -42,27 +42,27 @@ $orderAddress = $order->orderAddress
             <tbody>
                 <tr>
                     <th>Address</th>
-                    <td><?php echo $orderAddress->address?></td>
+                    <td style="text-align: center;"><?php echo $orderAddress->address?></td>
                 </tr>
 
                 <tr>
                     <th>City</th>
-                    <td><?php echo $orderAddress->city?></td>
+                    <td style="text-align: center;"><?php echo $orderAddress->city?></td>
                 </tr>
 
                 <tr>
                     <th>State</th>
-                    <td><?php echo $orderAddress->state?></td>
+                    <td style="text-align: center;"><?php echo $orderAddress->state?></td>
                 </tr>
 
                 <tr>
                     <th>Country</th>
-                    <td><?php echo $orderAddress->country?></td>
+                    <td style="text-align: center;"><?php echo $orderAddress->country?></td>
                 </tr>
 
                 <tr>
                     <th>Zipcode</th>
-                    <td><?php echo $orderAddress->zipcode?></td>
+                    <td style="text-align: center;"><?php echo $orderAddress->zipcode?></td>
                 </tr>
             </tbody>
         </table>
@@ -96,12 +96,12 @@ $orderAddress = $order->orderAddress
             <tbody>
                 <tr>
                     <th>Total Items</th>
-                    <td><?php echo $order->getItemsQuantity() ?></td>
+                    <td style="text-align: end;"><?php echo $order->getItemsQuantity() ?></td>
                 </tr>
 
                 <tr>
                     <th>Total Price</th>
-                    <td><?php echo Yii::$app->formatter->asCurrency($order->total_price) ?></td>
+                    <td style="text-align: end;"><?php echo Yii::$app->formatter->asCurrency($order->total_price) ?></td>
                 </tr>
             </tbody>
         </table>

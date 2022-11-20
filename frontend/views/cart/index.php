@@ -39,11 +39,11 @@ $this->title = 'Cart';
                         <img src="<?php echo Product::formatImageUrl($item['image']) ?>"
                              alt="<?php echo $item['image']?>" width="50px">
                     </td>
-                    <td class="product-price"><?php echo $item['price']?></td>
+                    <td class="product-price"><?php echo Yii::$app->formatter->asCurrency($item['price'])?></td>
                     <td>
                         <input type="number" min="1" class="form-control item-quantity" style="width: 80px" value="<?php echo $item['quantity']?>">
                     </td>
-                    <td class="total-price"><?php echo $item['totalPrice']?></td>
+                    <td class="total-price"><?php echo Yii::$app->formatter->asCurrency($item['totalPrice'])?></td>
                     <td>
                         <?php echo \yii\helpers\Html::a('Delete', ['cart/delete', 'id'=>$item['id']],[
                             'class'=>'btn btn-outline-danger btn-sm',

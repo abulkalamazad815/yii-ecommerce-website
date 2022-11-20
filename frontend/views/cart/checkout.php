@@ -12,6 +12,7 @@
 /** @var int $productQuantity */
 /** @var float $totalPrice */
 
+use common\models\Product;
 use yii\bootstrap5\ActiveForm;
 
 
@@ -58,21 +59,47 @@ use yii\bootstrap5\ActiveForm;
                 Order Summary
             </div>
             <div class="card-body">
+                <table class="table table">
+                    <thead>
+                    <tr>
+                        <th>Product Name</th>
+                        <th>Image</th>
+                        <th>Unit Price</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <?php foreach ($cartItems as $item):?>
+                        <tr>
+                            <td><?php echo $item['name']?></td>
+                            <td>
+                                <img src="<?php echo Product::formatImageUrl($item['image']) ?>"
+                                     alt="<?php echo $item['image']?>" width="50px">
+                            </td>
+                            <td class="product-price"><?php echo Yii::$app->formatter->asCurrency($item['price'])?></td>
+                            <td>
+                                <?php echo $item['quantity']?>
+                            </td>
+                            <td class="total-price"><?php echo Yii::$app->formatter->asCurrency($item['totalPrice'])?></td>
+                        </tr>
+                    <?php endforeach;?>
+                    </tbody>
+                </table>
                 <table class="table">
                     <tr>
-                        <td>
-                            <?php echo $productQuantity?> Products
-                        </td>
+                        <td>Total Items:</td>
+                        <td style="text-align: end;"><?php echo $productQuantity?></td>
                     </tr>
                     <tr>
-                        <td>Total Price</td>
-                        <td class="text-right">
+                        <td>Total Price:</td>
+                        <td class="text-right" style="text-align: end;">
                             <?php echo Yii::$app->formatter->asCurrency($totalPrice)?>
                         </td>
                     </tr>
                 </table>
                 <p style="float: right; margin-top: 5px">
-                    <button class="btn btn-secondary">Checkout</button>
+                    <button class="btn btn-success">Checkout</button>
                 </p>
             </div>
         </div>

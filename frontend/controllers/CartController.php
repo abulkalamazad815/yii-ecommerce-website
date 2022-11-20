@@ -37,7 +37,7 @@ class CartController extends \frontend\base\Controller
         return [
               [
                   'class' => ContentNegotiator::class,
-                  'only'=> ['add','create-order','submit-payment'],
+                  'only'=> ['add','create-order','submit-payment','change-quantity'],
                   'formats' => [
                       'application/json' => Response::FORMAT_JSON
                   ]
@@ -149,6 +149,7 @@ class CartController extends \frontend\base\Controller
             foreach ($cartItems as &$cartItem) {
                 if ($cartItem['id'] == $id) {
                     $cartItem['quantity'] = $quantity;
+                    $cartItem['totalPrice'] = $quantity * $cartItem['price'];
                     break;
                 }
             }
@@ -160,7 +161,11 @@ class CartController extends \frontend\base\Controller
                 $cartItem->save();
             }
         }
-        return CartItem::getTotalQuantityForUser(currUserId());
+
+        return [
+          'quantity' => CartItem::getTotalQuantityForUser(currUserId()),
+          'itemTotalprice' =>  Yii::$app->formatter->asCurrency(CartItem::getTotalPriceForItemForUser($id,currUserId()))
+        ];
     }
 
     public function actionCheckout(){
