@@ -52,7 +52,7 @@ AppAsset::register($this);
         <li class="nav-item">
             <a class="nav-link"
                href="<?php echo Url::to(['product/index'])?>">
-                <i class="fas fa-fw fa-chart-area"></i>
+                <i class="fas fa-fw fa-list"></i>
                 <span>Products</span></a>
         </li>
 
