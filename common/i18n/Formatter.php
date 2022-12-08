@@ -15,8 +15,12 @@ class Formatter extends \yii\i18n\Formatter
 {
     public function asOrderStatus($status){
         if($status === Order::STATUS_COMPLETED){
-            return Html::tag('span', 'Paid',[
+            return Html::tag('span', 'Completed',[
                 'class' => 'badge badge-success'
+            ]);
+        }elseif($status === Order::STATUS_PAID){
+            return Html::tag('span', 'Paid',[
+                'class' => 'badge badge-primary'
             ]);
         }elseif ($status === Order::STATUS_DRAFT){
             return Html::tag('span', 'Unpaid',[

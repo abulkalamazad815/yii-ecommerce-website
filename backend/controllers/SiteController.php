@@ -69,7 +69,7 @@ class SiteController extends Controller
         $totalProducts = OrderItem::find()->
         alias('oi')
             ->innerJoin(Order::tableName(). 'o', 'o.id = oi.order_id')
-            ->andWhere(['o.status' => Order::STATUS_COMPLETED])
+            ->andWhere(['o.status' => [Order::STATUS_PAID, Order::STATUS_COMPLETED]])
             ->sum('quantity');
 
         $totalOrders = Order::find()->paid()->count();
@@ -80,9 +80,9 @@ class SiteController extends Controller
                         DATE_FORMAT(FROM_UNIXTIME(o.created_at), '%Y-%m-%d') AS 'date'
                         ,SUM(o.total_price) AS 'totalPrice'
                     FROM orders o
-                    WHERE o.status  = :status
+                    WHERE o.status  IN(".Order::STATUS_PAID.", ".Order::STATUS_COMPLETED.")
                     GROUP BY DATE_FORMAT(FROM_UNIXTIME(o.created_at), '%Y-%m-%d')
-                    ORDER BY o.created_at", ['status' => Order::STATUS_COMPLETED])
+                    ORDER BY o.created_at")
                     ->asArray()
                     ->all();
 
@@ -109,8 +109,8 @@ class SiteController extends Controller
                 SUM(total_price) as totalPrice
                 FROM orders
                 INNER JOIN order_addresses oa on orders.id = oa.order_id
-                WHERE orders.status = :status
-                GROUP BY country", ['status' => Order::STATUS_COMPLETED])
+                WHERE orders.status IN(".Order::STATUS_PAID.", ".Order::STATUS_COMPLETED.")
+                GROUP BY country")
                 ->asArray()
                 ->all();
 

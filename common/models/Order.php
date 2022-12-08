@@ -18,16 +18,15 @@ use yii\db\Exception;
  * @property string|null $paypal_orderId
  * @property int|null $created_at
  * @property int|null $created_by
- *
- * @property User $createdBy
  * @property OrderAddress $orderAddress
  * @property OrderItem[] $orderItems
  */
 class Order extends \yii\db\ActiveRecord
 {
     const STATUS_DRAFT = 0;
-    const STATUS_COMPLETED = 1;
-    const STATUS_FAILURED = 2;
+    const STATUS_PAID = 1;
+    const STATUS_FAILED = 2;
+    const STATUS_COMPLETED = 3;
 
     /**
      * {@inheritdoc}
@@ -175,4 +174,13 @@ class Order extends \yii\db\ActiveRecord
             ->send();
     }
 
+    public static function getStatusLabels(){
+        return [
+            self::STATUS_PAID => 'Paid',
+            self::STATUS_COMPLETED => 'Completed',
+            self::STATUS_FAILED => 'Failed',
+            self::STATUS_DRAFT => 'Draft',
+
+        ];
+    }
 }
