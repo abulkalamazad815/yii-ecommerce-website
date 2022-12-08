@@ -65,7 +65,7 @@ class OrderController extends Controller
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return string|\yii\web\Response
      */
-    public function actionCreate()
+    /*public function actionCreate()
     {
         $model = new Order();
 
@@ -80,7 +80,7 @@ class OrderController extends Controller
         return $this->render('create', [
             'model' => $model,
         ]);
-    }
+    }*/
 
     /**
      * Updates an existing Order model.
@@ -89,18 +89,24 @@ class OrderController extends Controller
      * @return string|\yii\web\Response
      * @throws NotFoundHttpException if the model cannot be found
      */
-   /* public function actionUpdate($id)
+    public function actionUpdate($id)
     {
         $model = $this->findModel($id);
-
-        if ($this->request->isPost && $model->load($this->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+        if(\Yii::$app->request->isPost){
+            $status = \Yii::$app->request->post('Order')['status'];
+            $model->status = $status;
+            if(!in_array($status, [Order::STATUS_COMPLETED, Order::STATUS_PAID])){
+                $model->addError('status', 'Invalid status');
+            }elseif ($model->save()) {
+                return $this->redirect(['view', 'id' => $model->id]);
+            }
         }
+
 
         return $this->render('update', [
             'model' => $model,
         ]);
-    }*/
+    }
 
     /**
      * Deletes an existing Order model.
